@@ -1,8 +1,15 @@
 import cv2
 
 # Carga el modelo Haar Cascade para detección de manos
-face_cascade = cv2.CascadeClassifier('model/haarcascade_frontalface_alt.xml')
-eye_cascade = cv2.CascadeClassifier('model/haarcascade_eye.xml')
+fist_cascade = cv2.CascadeClassifier('model/fist.xml')
+
+rpalm_cascade = cv2.CascadeClassifier('model/rpalm.xml')
+lpalm_cascade = cv2.CascadeClassifier('model/lpalm.xml')
+
+right_cascade = cv2.CascadeClassifier('model/right.xml')
+left_cascade = cv2.CascadeClassifier('model/left.xml')
+
+gest_cascade = cv2.CascadeClassifier('model/aGest.xml')
 
 # Crea un objeto VideoCapture para capturar el video desde la webcam (por defecto, la cámara 0)
 cap = cv2.VideoCapture(0)
@@ -18,16 +25,15 @@ while True:
 	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
 	# Detecta manos en el frame usando el clasificador Haar Cascade
-	faces = face_cascade.detectMultiScale(gray, scaleFactor=1.08, minNeighbors=5)
-	eyes = eye_cascade.detectMultiScale(gray, scaleFactor=1.28, minNeighbors=15)
-	
-	# Dibuja rectángulos alrededor de los ojos detectadas
-	for (x, y, w, h) in eyes:
-		frame = cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-	
-	# Dibuja rectángulos alrededor de las caras detectadas
-	for (x, y, w, h) in faces:
-		frame = cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+	rpalms = rpalm_cascade.detectMultiScale(gray, scaleFactor=1.02, minNeighbors=2)
+	#lpalms = lpalm_cascade.detectMultiScale(gray, scaleFactor=1.02, minNeighbors=2)
+		
+	for (x, y, w, h) in rpalms:
+		frame = cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+		
+
+
 	
 	
 	# Muestra el frame con la detección de manos en tiempo real
