@@ -5,7 +5,7 @@ import numpy as np
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(2)
 
 while cap.isOpened():
 	ret, frame = cap.read()
@@ -38,9 +38,19 @@ while cap.isOpened():
 
 			roi = frame[y_min:y_max, x_min:x_max]
 			if roi.size != 0:
-				gray_img = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-				ret, thresh = cv2.threshold(gray_img, 125, 255, cv2.THRESH_BINARY_INV)
-
+				hsv_img = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+				#ret, thresh = cv2.threshold(hsv_img, 130, 255, cv2.THRESH_BINARY_INV)
+				
+				limite_bajo = np.array([0, 30, 53], dtype=np.uint8)
+				limite_alto = np.array([200, 172, 255], dtype=np.uint8)
+				
+				mask = cv2.inRange(hsv_img, limite_bajo, limite_alto)
+				
+				gray_mask = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+				ret, thresh = cv2.threshold(gray_mask, 127, 255, 1)
+				
+				cv2.imshow("Thresh", thresh)
+				
 				contours, hier = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 				height_roi, width_roi = roi.shape[:2]
@@ -68,10 +78,37 @@ while cap.isOpened():
 					for point in approx:
 						point[0][0] += x_min
 						point[0][1] += y_min
-					cv2.drawContours(frame, [approx], 0, (255, 255, 0), 2)
+						
+					hull = cv2.convexHull(closest_contour, returnPoints = True)
+					
+					for point in hull:
+						point[0][0] += x_min
+						point[0][1] += y_min
+						
+					"""
+					hull[::-1].sort(axis=0)
+					defects = cv2.convexityDefects(closest_contour, hull)
+					
+					if defects is not None:
+						for i in range(defects.shape[0]):
+							s,e,f,d = defects[i,0]
+							
+							closest_contour[f][0][0] += x_min
+							closest_contour[f][0][1] += y_min
+							
+							far = tuple(closest_contour[f][0])
+							cv2.circle(frame,far,5,[0,0,255],-1)
+							
+							#print(len(closest_contour[f][0]))
+					"""
+					
+					cv2.drawContours(frame, [approx], 0, (0, 0, 255), 2)		
+					cv2.drawContours(frame, [hull], 0, (255, 255, 0), 2)
+						
 
 
 	cv2.imshow("Hand Tracking", frame)
+	
 
 	if cv2.waitKey(1) & 0xFF == 27:  # Press 'Esc' to exit the loop
 		break
