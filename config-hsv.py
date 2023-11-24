@@ -6,15 +6,15 @@ import numpy as np
 def set_hsv_values():
     # Create a window with sliders for adjusting HSV values
     cv2.namedWindow('Set HSV Values')
-    cv2.createTrackbar('Hue Min', 'Set HSV Values', 0, 179, lambda x: None)
-    cv2.createTrackbar('Hue Max', 'Set HSV Values', 0, 179, lambda x: None)
-    cv2.createTrackbar('Saturation Min', 'Set HSV Values', 0, 255, lambda x: None)
-    cv2.createTrackbar('Saturation Max', 'Set HSV Values', 0, 255, lambda x: None)
-    cv2.createTrackbar('Value Min', 'Set HSV Values', 0, 255, lambda x: None)
-    cv2.createTrackbar('Value Max', 'Set HSV Values', 0, 255, lambda x: None)
+    cv2.createTrackbar('Hue Min', 'Set HSV Values', 0, 255, lambda x: None)
+    cv2.createTrackbar('Hue Max', 'Set HSV Values', 200, 255, lambda x: None)
+    cv2.createTrackbar('Saturation Min', 'Set HSV Values', 30, 255, lambda x: None)
+    cv2.createTrackbar('Saturation Max', 'Set HSV Values', 172, 255, lambda x: None)
+    cv2.createTrackbar('Value Min', 'Set HSV Values', 53, 255, lambda x: None)
+    cv2.createTrackbar('Value Max', 'Set HSV Values', 255, 255, lambda x: None)
 
     # Open the camera
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(2)
 
     changes_saved = False
 

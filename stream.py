@@ -1,11 +1,31 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+import json
+import math
+
+archivo_json = 'hsv.json'
+
+def get_distance(point1, point2):
+	x1, y1 = point1
+	x2, y2 = point2
+	distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+	return distance
+
+def get_mean_point(point1, point2):
+	x1, y1 = point1
+	x2, y2 = point2
+	xm = (x1+x2)//2
+	ym = (y1+y2)//2
+	return (xm, ym)
+
+with open(archivo_json, 'r') as archivo:
+    hsv_values = json.load(archivo)
 
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(0)
 
 while cap.isOpened():
 	ret, frame = cap.read()
@@ -41,8 +61,8 @@ while cap.isOpened():
 				hsv_img = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
 				#ret, thresh = cv2.threshold(hsv_img, 130, 255, cv2.THRESH_BINARY_INV)
 				
-				limite_bajo = np.array([0, 30, 53], dtype=np.uint8)
-				limite_alto = np.array([200, 172, 255], dtype=np.uint8)
+				limite_bajo = np.array([hsv_values['hue_min'], hsv_values['sat_min'], hsv_values['val_min']], dtype=np.uint8)
+				limite_alto = np.array([hsv_values['hue_max'], hsv_values['sat_max'], hsv_values['val_max']], dtype=np.uint8)
 				
 				mask = cv2.inRange(hsv_img, limite_bajo, limite_alto)
 				
@@ -79,17 +99,13 @@ while cap.isOpened():
 						point[0][0] += x_min
 						point[0][1] += y_min
 						
-					hull = cv2.convexHull(closest_contour, returnPoints = True)
+					hull = cv2.convexHull(closest_contour, returnPoints = False)
 					
-					for point in hull:
-						point[0][0] += x_min
-						point[0][1] += y_min
-						
-					"""
 					hull[::-1].sort(axis=0)
 					defects = cv2.convexityDefects(closest_contour, hull)
 					
 					if defects is not None:
+						fars = []
 						for i in range(defects.shape[0]):
 							s,e,f,d = defects[i,0]
 							
@@ -97,19 +113,23 @@ while cap.isOpened():
 							closest_contour[f][0][1] += y_min
 							
 							far = tuple(closest_contour[f][0])
-							cv2.circle(frame,far,5,[0,0,255],-1)
+							rep = False
 							
-							#print(len(closest_contour[f][0]))
-					"""
-					
-					cv2.drawContours(frame, [approx], 0, (0, 0, 255), 2)		
-					cv2.drawContours(frame, [hull], 0, (255, 255, 0), 2)
-						
-
+							for p in fars:
+								if get_distance(far, p) < 25:
+									point = p
+									rep = True
+									fars.remove(point)
+									m_point = get_mean_point(far, point)
+									fars.append(m_point)
+									cv2.circle(frame,m_point,5,[0,0,255],-1)
+									break
+							if not rep:
+								fars.append(far)
+								cv2.circle(frame,far,5,[0,0,255],-1)
 
 	cv2.imshow("Hand Tracking", frame)
 	
-
 	if cv2.waitKey(1) & 0xFF == 27:  # Press 'Esc' to exit the loop
 		break
 
