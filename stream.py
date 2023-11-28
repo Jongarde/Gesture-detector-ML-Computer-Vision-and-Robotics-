@@ -109,24 +109,41 @@ while cap.isOpened():
 						for i in range(defects.shape[0]):
 							s,e,f,d = defects[i,0]
 							
-							closest_contour[f][0][0] += x_min
-							closest_contour[f][0][1] += y_min
-							
 							far = tuple(closest_contour[f][0])
-							rep = False
+							start  = tuple(closest_contour[s][0])
+							end = tuple(closest_contour[e][0])
+
+							far = (far[0] + x_min, far[1] + y_min)
+							start = (start[0] + x_min, start[1] + y_min)
+							end = (end[0] + x_min, end[1] + y_min)
+
+							# # closest_contour[f][0][0] += x_min
+							# # closest_contour[f][0][1] += y_min
+
+							# # closest_contour[s][0][0] += x_min
+							# # closest_contour[s][0][1] += y_min
+
+							# # closest_contour[e][0][0] += x_min
+							# # closest_contour[e][0][1] += y_min
 							
-							for p in fars:
-								if get_distance(far, p) < 25:
-									point = p
-									rep = True
-									fars.remove(point)
-									m_point = get_mean_point(far, point)
-									fars.append(m_point)
-									cv2.circle(frame,m_point,5,[0,0,255],-1)
-									break
-							if not rep:
-								fars.append(far)
-								cv2.circle(frame,far,5,[0,0,255],-1)
+							
+							cv2.circle(frame,far,5,[0,0,255],-1)
+							cv2.circle(frame,start,5,[255,0,0],-1)
+							cv2.circle(frame,end,5,[0,255,0],-1)
+							# rep = False
+							
+							# for p in fars:
+							# 	if get_distance(far, p) < 25:
+							# 		point = p
+							# 		rep = True
+							# 		fars.remove(point)
+							# 		m_point = get_mean_point(far, point)
+							# 		fars.append(m_point)
+							# 		cv2.circle(frame,m_point,5,[0,0,255],-1)
+							# 		break
+							# if not rep:
+							# 	fars.append(far)
+							# 	cv2.circle(frame,far,5,[0,0,255],-1)
 
 	cv2.imshow("Hand Tracking", frame)
 	
