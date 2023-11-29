@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import tkinter as tk
 from tkinter import Scale
+import json
 
 def update_values():
 	global limite_bajo_h, limite_bajo_s, limite_bajo_v, limite_alto_h, limite_alto_s, limite_alto_h
@@ -16,7 +17,7 @@ def update_values():
 	process_image()
     
 def process_image():
-	img = cv2.imread("img/mano.png")
+	img = cv2.imread("img/foto1.jpg")
 
 	img = cv2.resize(img, (600, 600))
 
@@ -35,6 +36,11 @@ def process_image():
 
 	cv2.imshow('Skin Detection', skin)
 	cv2.waitKey(1)
+
+archivo_json = 'hsv.json'
+
+with open(archivo_json, 'r') as archivo:
+    hsv_values = json.load(archivo)
 
 root = tk.Tk()
 root.title("Control de Parámetros")
@@ -66,13 +72,13 @@ limite_altos_slider.bind("<Motion>", lambda event: update_values())
 limite_altov_slider.bind("<Motion>", lambda event: update_values())
 
 # Establecer los valores iniciales
-limite_bajo_h = 0
-limite_bajo_s = 49
-limite_bajo_v = 74
+limite_bajo_h = hsv_values['hue_min'] 
+limite_bajo_s = hsv_values['sat_min']
+limite_bajo_v = hsv_values['val_min']
 
-limite_alto_h = 23
-limite_alto_s = 139
-limite_alto_v = 255
+limite_alto_h = hsv_values['hue_max'] 
+limite_alto_s = hsv_values['sat_max']
+limite_alto_v = hsv_values['val_max']
 
 limite_bajoh_slider.set(limite_bajo_h)
 limite_bajos_slider.set(limite_bajo_s)

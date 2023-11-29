@@ -54,7 +54,7 @@ while cap.isOpened():
 
 			cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
 			
-			#cv2.circle(frame, (center_x, center_y), 5, (0, 255, 0), -1)
+			cv2.circle(frame, (int(wrist.x * frame.shape[1]), int(wrist.y * frame.shape[0])), 5, (0, 255, 0), -1)
 
 			roi = frame[y_min:y_max, x_min:x_max]
 			if roi.size != 0:

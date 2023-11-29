@@ -17,7 +17,7 @@ if not ret:
     exit()
 
 # Guardar la imagen capturada en un archivo (puedes cambiar el nombre y formato según tus preferencias)
-cv2.imwrite("img/foto2.jpg", frame)
+cv2.imwrite("img/foto5.jpg", frame)
 
 # Liberar la webcam y cerrar la ventana
 cap.release()
