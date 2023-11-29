@@ -25,7 +25,7 @@ with open(archivo_json, 'r') as archivo:
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(2)
 
 while cap.isOpened():
 	ret, frame = cap.read()
@@ -69,7 +69,7 @@ while cap.isOpened():
 				gray_mask = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
 				ret, thresh = cv2.threshold(gray_mask, 127, 255, 1)
 				
-				cv2.imshow("Thresh", thresh)
+				cv2.imshow("thresh", thresh)
 				
 				contours, hier = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -105,7 +105,9 @@ while cap.isOpened():
 					defects = cv2.convexityDefects(closest_contour, hull)
 					
 					if defects is not None:
-						fars = []
+						starts = []
+						ends = []
+						points = []
 						for i in range(defects.shape[0]):
 							s,e,f,d = defects[i,0]
 							
@@ -116,34 +118,27 @@ while cap.isOpened():
 							far = (far[0] + x_min, far[1] + y_min)
 							start = (start[0] + x_min, start[1] + y_min)
 							end = (end[0] + x_min, end[1] + y_min)
-
-							# # closest_contour[f][0][0] += x_min
-							# # closest_contour[f][0][1] += y_min
-
-							# # closest_contour[s][0][0] += x_min
-							# # closest_contour[s][0][1] += y_min
-
-							# # closest_contour[e][0][0] += x_min
-							# # closest_contour[e][0][1] += y_min
 							
+							a = math.sqrt((end[0] - start[0]) ** 2 + (end[1] - start[1]) ** 2)
+							b = math.sqrt((far[0] - start[0]) ** 2 + (far[1] - start[1]) ** 2)
+							c = math.sqrt((end[0] - far[0]) ** 2 + (end[1] - far[1]) ** 2)
+							angle = (math.acos((b ** 2 + c ** 2 - a ** 2) / (2 * b * c)) * 180) / np.pi
+
+							if angle <= 90:
+								starts.append(start)
+								ends.append(end)
+								cv2.circle(frame,far,5,[0,0,255],-1) 
+						
+						if len(starts) == len(ends) and len(starts)>0 and len(starts) < 6:
+							points.append(starts[0])
+							for i in range(len(starts)-1):
+								p = get_mean_point(starts[i+1], ends[i])
+								points.append(p)
+							points.append(ends[-1])
 							
-							cv2.circle(frame,far,5,[0,0,255],-1)
-							cv2.circle(frame,start,5,[255,0,0],-1)
-							cv2.circle(frame,end,5,[0,255,0],-1)
-							# rep = False
-							
-							# for p in fars:
-							# 	if get_distance(far, p) < 25:
-							# 		point = p
-							# 		rep = True
-							# 		fars.remove(point)
-							# 		m_point = get_mean_point(far, point)
-							# 		fars.append(m_point)
-							# 		cv2.circle(frame,m_point,5,[0,0,255],-1)
-							# 		break
-							# if not rep:
-							# 	fars.append(far)
-							# 	cv2.circle(frame,far,5,[0,0,255],-1)
+							for point in points:
+								cv2.circle(frame,point,5,[255,0,0],-1) 
+								
 
 	cv2.imshow("Hand Tracking", frame)
 	
