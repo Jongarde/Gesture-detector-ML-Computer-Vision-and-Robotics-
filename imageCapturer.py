@@ -3,7 +3,7 @@ import os
 import time
 
 # Crear la carpeta 'gesto1' si no existe
-output_folder = 'gesto1'
+output_folder = 'gesto3'
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
@@ -15,11 +15,11 @@ file_prefix = 'img'
 file_format = '.png'
 
 # Configurar la frecuencia de captura en segundos y el límite de capturas
-captura_cada_segundo = 1
-limite_capturas = 100
+captura_cada_segundo = 20
+limite_capturas = 3000
 
 # Inicializar contador de capturas
-contador_capturas = 0
+contador_capturas = 2000
 
 try:
     while contador_capturas < limite_capturas:
@@ -46,7 +46,7 @@ try:
         contador_capturas += 1
 
         # Esperar el tiempo especificado antes de la próxima captura
-        time.sleep(captura_cada_segundo)
+        time.sleep(1/captura_cada_segundo)
 
 finally:
     # Liberar la cámara y cerrar la ventana
