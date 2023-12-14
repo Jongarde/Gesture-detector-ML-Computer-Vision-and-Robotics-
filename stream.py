@@ -3,6 +3,12 @@ import mediapipe as mp
 import numpy as np
 import json
 import math
+import pickle
+import sklearn.metrics
+import warnings
+
+warnings.filterwarnings("ignore", message="X does not have valid feature names")
+
 
 archivo_json = 'hsv.json'
 
@@ -19,13 +25,37 @@ def get_mean_point(point1, point2):
 	ym = (y1+y2)//2
 	return (xm, ym)
 
+def normalize_point(point, point_min, point_max):
+	x_min, y_min = point_min
+	x_max, y_max = point_max
+	
+	x, y = point
+
+	x_norm = (x-x_min)/(x_max-x_min)
+	y_norm = (y-y_min)/(y_max-y_min)
+	
+	return (x_norm, y_norm)
+
 with open(archivo_json, 'r') as archivo:
     hsv_values = json.load(archivo)
+    
+text = " "
+
+coords = (10, 50)
+
+font = cv2.FONT_HERSHEY_SIMPLEX
+scale = 1
+colour = (255, 0, 0)
+thick = 2
 
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 
 cap = cv2.VideoCapture(2)
+
+p0 = (0,0)
+
+loaded_model = pickle.load(open('ML/knn', 'rb'))
 
 while cap.isOpened():
 	ret, frame = cap.read()
@@ -54,7 +84,11 @@ while cap.isOpened():
 
 			cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
 			
-			cv2.circle(frame, (int(wrist.x * frame.shape[1]), int(wrist.y * frame.shape[0])), 5, (0, 255, 0), -1)
+			diag_roi = get_distance((x_min, y_min), (x_max, y_max))
+			
+			wrist_point = (int(wrist.x * frame.shape[1]), int(wrist.y * frame.shape[0]))
+			
+			cv2.circle(frame, wrist_point, 5, (0, 255, 0), -1)
 
 			roi = frame[y_min:y_max, x_min:x_max]
 			if roi.size != 0:
@@ -105,6 +139,11 @@ while cap.isOpened():
 					defects = cv2.convexityDefects(closest_contour, hull)
 					
 					if defects is not None:
+						fars = []
+						fingers = []
+						dist_fars = []
+						dist_fingers = []
+						
 						starts = []
 						ends = []
 						points = []
@@ -127,8 +166,23 @@ while cap.isOpened():
 							if angle <= 90:
 								starts.append(start)
 								ends.append(end)
-								cv2.circle(frame,far,5,[0,0,255],-1) 
+								cv2.circle(frame,far,5,[0,0,255],-1)
+								fars.append(far)
 						
+						fars = sorted(fars, key=lambda point_far: point_far[1])
+						
+						for i in range(len(fars)):
+							dist_fars.append(get_distance(wrist_point, fars[i])/diag_roi)
+							fars[i] = normalize_point(fars[i], (x_min, y_min), (x_max, y_max))
+						
+						if len(fars) < 5:
+							for i in range(4-len(fars)):
+								fars.append(p0)
+								dist_fars.append(0)
+						else:
+							fars = [p0,p0,p0,p0]
+							dist_fars = [0,0,0,0]
+								
 						if len(starts) == len(ends) and len(starts)>0 and len(starts) < 6:
 							points.append(starts[0])
 							for i in range(len(starts)-1):
@@ -136,9 +190,29 @@ while cap.isOpened():
 								points.append(p)
 							points.append(ends[-1])
 							
+							points = sorted(points, key=lambda point: point[1])
+							
 							for point in points:
 								cv2.circle(frame,point,5,[255,0,0],-1) 
+								x_p, y_p = point
+								x_norm = (x_p-x_min)/(x_max-x_min)
+								y_norm = (y_p-y_min)/(y_max-y_min)
+								fingers.append((x_norm, y_norm))
+								dist_fingers.append(get_distance(wrist_point, point)/diag_roi)
 								
+							for i in range(5-len(fingers)):
+								fingers.append(p0)
+								dist_fingers.append(0)
+								
+						if dist_fars.count(0) == 2 and dist_fingers.count(0) == 2:
+							target = loaded_model.predict([[fars[0][0], fars[0][1], fars[1][0], fars[1][1],
+											fingers[0][0], fingers[0][1], fingers[1][0], fingers[1][1], fingers[2][0], fingers[2][1],
+											dist_fars[0], dist_fars[1], dist_fingers[0], dist_fingers[1], dist_fingers[2]]])
+
+							text = target[0]
+							
+	cv2.putText(frame, "Gesto: " + str(text), coords, font, scale, colour, thick)
+	text = ""				
 
 	cv2.imshow("Hand Tracking", frame)
 	

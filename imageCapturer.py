@@ -3,7 +3,7 @@ import os
 import time
 
 # Crear la carpeta 'gesto1' si no existe
-output_folder = 'gesto3'
+output_folder = 'gesto2'
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
