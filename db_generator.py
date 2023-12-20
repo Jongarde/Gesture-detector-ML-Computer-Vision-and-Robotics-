@@ -41,7 +41,7 @@ hands = mp_hands.Hands()
 
 route_csv = 'imgs.csv'
 
-img_dir = 'gesto3'
+img_dir = 'gesto3-aug'
 img_dir2 = 'gesto3-att'
 
 imgs = os.listdir(img_dir)
@@ -197,11 +197,11 @@ for im in imgs:
 								dist_fingers.append(0)
 	
 	if dist_fars.count(0) == 2 and dist_fingers.count(0) == 2:
-		complete_route2 = os.path.join(img_dir2, im)
+		#complete_route2 = os.path.join(img_dir2, im)
 		data = [fars, dist_fars, fingers, dist_fingers, im, 2]
 
 		with open(route_csv, mode='a', newline='') as file_csv:
 			writer_csv = csv.writer(file_csv)
 
 			writer_csv.writerow(data)
-		cv2.imwrite(complete_route2, img)
+		#cv2.imwrite(complete_route2, img)

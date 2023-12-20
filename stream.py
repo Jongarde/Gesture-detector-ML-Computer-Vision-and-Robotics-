@@ -210,10 +210,9 @@ while cap.isOpened():
 											dist_fars[0], dist_fars[1], dist_fingers[0], dist_fingers[1], dist_fingers[2]]])
 
 							text = target[0]
-							
+													
 	cv2.putText(frame, "Gesto: " + str(text), coords, font, scale, colour, thick)
-	text = ""				
-
+	text = " "				
 	cv2.imshow("Hand Tracking", frame)
 	
 	if cv2.waitKey(1) & 0xFF == 27:  # Press 'Esc' to exit the loop
